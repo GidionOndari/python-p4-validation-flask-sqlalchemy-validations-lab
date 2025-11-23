@@ -1,39 +1,38 @@
-#!/usr/bin/env python3
-
-from random import choice as rc
-from faker import Faker
-from app import app
 from models import db, Author, Post
-
-fake = Faker()
+from app import app
 
 with app.app_context():
-
+    # Clear existing data
     Post.query.delete()
     Author.query.delete()
-
-    # Create Authors
-    authors = []
-    for _ in range(25):
-        name = fake.unique.name()  # ensures unique names
-        author = Author(name=name, phone_number='1324543333')
-        authors.append(author)
-
-    db.session.add_all(authors)
     db.session.commit()
 
-    # Create Posts
-    posts = []
-    for _ in range(25):
-        author = rc(authors)
-        post = Post(
-            title='Secret banana',
-            content='This is the content Secret' * 50,
-            category='Fiction',
-            summary='Summary Secret',
-            author=author
-        )
-        posts.append(post)
+    # Create a valid author
+    author = Author(name="Ben", phone_number="1234567890")
+    db.session.add(author)
+    db.session.commit()  # Commit so we get a valid author.id
 
-    db.session.add_all(posts)
+    # Create posts linked to the author
+    content_250 = "A" * 250
+    summary_250 = "T" * 250
+
+    post1 = Post(
+        title="Secret Why I love programming.",
+        content=content_250,
+        summary=summary_250,
+        category="Non-Fiction",
+        author_id=author.id
+    )
+
+    post2 = Post(
+        title="You Won't Believe Why coding is fun.",
+        content=content_250,
+        summary=None,
+        category="Fiction",
+        author_id=author.id
+    )
+
+    db.session.add_all([post1, post2])
     db.session.commit()
+
+    print("Seeding complete! 1 author and 2 posts added.")
